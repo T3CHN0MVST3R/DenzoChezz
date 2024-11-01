@@ -5,6 +5,7 @@ import com.denzo.board.BoardFactory;
 import com.denzo.board.Move;
 import com.denzo.piece.King;
 import com.denzo.piece.Piece;
+import com.denzo.BoardConsoleRenderer; // Исправленный импорт
 
 import java.util.Scanner;
 import java.util.Set;
@@ -17,7 +18,6 @@ public class InputCoordinates {
         while (true) {
             System.out.println("Please enter coordinates (ex. a1)");
 
-            // a1
             String line = scanner.nextLine();
 
             if (line.length() != 2) {
@@ -40,13 +40,13 @@ public class InputCoordinates {
 
             int rank = Character.getNumericValue(rankChar);
             if (rank < 1 || rank > 8) {
-                System.out.println("Invalid format");
+                System.out.println("Invalid rank");
                 continue;
             }
 
             File file = File.fromChar(fileChar);
             if (file == null) {
-                System.out.println("Invalid format");
+                System.out.println("Invalid file");
                 continue;
             }
 
@@ -94,9 +94,9 @@ public class InputCoordinates {
         }
     }
 
+    // Обновленный метод inputMove с правильным импортом
     public static Move inputMove(Board board, Color color, BoardConsoleRenderer renderer) {
         while (true) {
-            // input
             Coordinates sourceCoordinates = InputCoordinates.inputPieceCoordinatesForColor(
                     color, board
             );
@@ -107,7 +107,29 @@ public class InputCoordinates {
             renderer.render(board, piece);
             Coordinates targetCoordinates = InputCoordinates.inputAvailableSquare(availableMoveSquares);
 
-            Move move = new Move(sourceCoordinates, targetCoordinates);
+            Move move;
+
+            if (piece instanceof King) {
+                int fileShift = targetCoordinates.file.ordinal() - sourceCoordinates.file.ordinal();
+                if (Math.abs(fileShift) == 2) {
+                    // Рокировка
+                    move = new Move(sourceCoordinates, targetCoordinates);
+                    move.isCastlingMove = true;
+                    if (fileShift == 2) {
+                        // Короткая рокировка
+                        move.rookFrom = new Coordinates(File.H, sourceCoordinates.rank);
+                        move.rookTo = new Coordinates(File.F, sourceCoordinates.rank);
+                    } else if (fileShift == -2) {
+                        // Длинная рокировка
+                        move.rookFrom = new Coordinates(File.A, sourceCoordinates.rank);
+                        move.rookTo = new Coordinates(File.D, sourceCoordinates.rank);
+                    }
+                } else {
+                    move = new Move(sourceCoordinates, targetCoordinates);
+                }
+            } else {
+                move = new Move(sourceCoordinates, targetCoordinates);
+            }
 
             if (validateIfKingInCheckAfterMove(board, color, move)) {
                 System.out.println("Your king is under attack!");
@@ -122,8 +144,7 @@ public class InputCoordinates {
         Board copy = (new BoardFactory()).copy(board);
         copy.makeMove(move);
 
-        // we trust that there is king on the board
-        Piece king = copy.getPiecesByColor(color).stream().filter(piece -> piece instanceof King).findFirst().get();
+        Piece king = copy.getPiecesByColor(color).stream().filter(p -> p instanceof King).findFirst().get();
         return copy.isSquareAttackedByColor(king.coordinates, color.opposite());
     }
 }

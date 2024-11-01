@@ -10,6 +10,7 @@ import java.util.Set;
 abstract public class Piece {
     public final Color color;
     public Coordinates coordinates;
+    public boolean hasMoved = false;
 
     public Piece(Color color, Coordinates coordinates) {
         this.color = color;
