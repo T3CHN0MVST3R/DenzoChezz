@@ -39,4 +39,13 @@ public class PieceFactory {
                 throw new RuntimeException("Unknown FEN char!");
         }
     }
+
+    public Piece createPiece(Class<? extends Piece> pieceClass, Color color, Coordinates coordinates) {
+        try {
+            return pieceClass.getConstructor(Color.class, Coordinates.class)
+                    .newInstance(color, coordinates);
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при создании фигуры: " + pieceClass.getSimpleName(), e);
+        }
+    }
 }

@@ -3,9 +3,8 @@ package com.denzo;
 import com.denzo.board.Board;
 import com.denzo.board.BoardFactory;
 import com.denzo.board.Move;
-import com.denzo.piece.King;
-import com.denzo.piece.Piece;
-import com.denzo.BoardConsoleRenderer; // Исправленный импорт
+import com.denzo.piece.*;
+import com.denzo.BoardConsoleRenderer;
 
 import java.util.Scanner;
 import java.util.Set;
@@ -18,7 +17,7 @@ public class InputCoordinates {
         while (true) {
             System.out.println("Please enter coordinates (ex. a1)");
 
-            String line = scanner.nextLine();
+            String line = scanner.nextLine().trim();
 
             if (line.length() != 2) {
                 System.out.println("Invalid format");
@@ -71,7 +70,7 @@ public class InputCoordinates {
             }
 
             Set<Coordinates> availableMoveSquares = piece.getAvailableMoveSquares(board);
-            if (availableMoveSquares.size() == 0) {
+            if (availableMoveSquares.isEmpty()) {
                 System.out.println("Blocked piece");
                 continue;
             }
@@ -94,18 +93,16 @@ public class InputCoordinates {
         }
     }
 
-    // Обновленный метод inputMove с правильным импортом
+    // Обновленный метод inputMove
     public static Move inputMove(Board board, Color color, BoardConsoleRenderer renderer) {
         while (true) {
-            Coordinates sourceCoordinates = InputCoordinates.inputPieceCoordinatesForColor(
-                    color, board
-            );
+            Coordinates sourceCoordinates = inputPieceCoordinatesForColor(color, board);
 
             Piece piece = board.getPiece(sourceCoordinates);
             Set<Coordinates> availableMoveSquares = piece.getAvailableMoveSquares(board);
 
             renderer.render(board, piece);
-            Coordinates targetCoordinates = InputCoordinates.inputAvailableSquare(availableMoveSquares);
+            Coordinates targetCoordinates = inputAvailableSquare(availableMoveSquares);
 
             Move move;
 
@@ -131,8 +128,17 @@ public class InputCoordinates {
                 move = new Move(sourceCoordinates, targetCoordinates);
             }
 
+            // Добавляем обработку превращения пешки
+            if (piece instanceof Pawn) {
+                int lastRank = color == Color.WHITE ? 8 : 1;
+                if (targetCoordinates.rank == lastRank) {
+                    Class<? extends Piece> promotionPieceType = inputPromotionPieceType();
+                    move.promotionPieceType = promotionPieceType;
+                }
+            }
+
             if (validateIfKingInCheckAfterMove(board, color, move)) {
-                System.out.println("Your king is under attack!");
+                System.out.println("Ваш король под атакой!");
                 continue;
             }
 
@@ -140,11 +146,39 @@ public class InputCoordinates {
         }
     }
 
+    private static Class<? extends Piece> inputPromotionPieceType() {
+        while (true) {
+            System.out.println("Выберите фигуру для превращения (Q - Ферзь, R - Ладья, B - Слон, N - Конь):");
+            String input = scanner.nextLine().trim().toUpperCase();
+
+            switch (input) {
+                case "Q":
+                    return Queen.class;
+                case "R":
+                    return Rook.class;
+                case "B":
+                    return Bishop.class;
+                case "N":
+                    return Knight.class;
+                default:
+                    System.out.println("Неверный выбор. Пожалуйста, выберите снова.");
+            }
+        }
+    }
+
     private static boolean validateIfKingInCheckAfterMove(Board board, Color color, Move move) {
-        Board copy = (new BoardFactory()).copy(board);
+        Board copy = new BoardFactory().copy(board);
         copy.makeMove(move);
 
-        Piece king = copy.getPiecesByColor(color).stream().filter(p -> p instanceof King).findFirst().get();
+        Piece king = copy.getPiecesByColor(color).stream()
+                .filter(p -> p instanceof King)
+                .findFirst()
+                .orElse(null);
+
+        if (king == null) {
+            throw new RuntimeException("King not found on the board!");
+        }
+
         return copy.isSquareAttackedByColor(king.coordinates, color.opposite());
     }
 }

@@ -2,7 +2,9 @@ package com.denzo.board;
 
 import com.denzo.Color;
 import com.denzo.Coordinates;
-import com.denzo.piece.Piece;
+import com.denzo.File;
+import com.denzo.PieceFactory;
+import com.denzo.piece.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +16,8 @@ public class Board {
     private HashMap<Coordinates, Piece> pieces = new HashMap<>();
 
     public List<Move> moves = new ArrayList<>();
+
+    private PieceFactory pieceFactory = new PieceFactory(); // Объект для создания фигур
 
     public Board(String startingFen) {
         this.startingFen = startingFen;
@@ -28,12 +32,33 @@ public class Board {
         pieces.remove(coordinates);
     }
 
-    // Обновленный метод makeMove
+    // Обновленный метод makeMove с обработкой рокировки и превращения пешки
     public void makeMove(Move move) {
         Piece piece = getPiece(move.from);
 
         removePiece(move.from);
-        setPiece(move.to, piece);
+
+        // Проверка на превращение пешки
+        if (piece instanceof Pawn) {
+            int lastRank = piece.color == Color.WHITE ? 8 : 1;
+            if (move.to.rank == lastRank) {
+                // Превращение пешки
+                Piece promotedPiece;
+                if (move.promotionPieceType != null) {
+                    promotedPiece = pieceFactory.createPiece(move.promotionPieceType, piece.color, move.to);
+                } else {
+                    // По умолчанию превращаем в ферзя
+                    promotedPiece = new Queen(piece.color, move.to);
+                }
+                setPiece(move.to, promotedPiece);
+            } else {
+                setPiece(move.to, piece);
+                piece.coordinates = move.to;
+            }
+        } else {
+            setPiece(move.to, piece);
+            piece.coordinates = move.to;
+        }
 
         piece.hasMoved = true; // Обновление флага
 
@@ -43,6 +68,7 @@ public class Board {
             removePiece(move.rookFrom);
             setPiece(move.rookTo, rook);
 
+            rook.coordinates = move.rookTo;
             rook.hasMoved = true;
         }
 
