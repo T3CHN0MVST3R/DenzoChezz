@@ -1,8 +1,11 @@
 package com.denzo;
 
 import com.denzo.piece.*;
+import com.denzo.Color;
+import com.denzo.Coordinates;
 
 public class PieceFactory {
+
     public Piece fromFenChar(char fenChar, Coordinates coordinates) {
         switch (fenChar) {
             case 'p':

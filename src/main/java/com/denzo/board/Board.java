@@ -3,8 +3,8 @@ package com.denzo.board;
 import com.denzo.Color;
 import com.denzo.Coordinates;
 import com.denzo.File;
-import com.denzo.PieceFactory;
 import com.denzo.piece.*;
+import com.denzo.PieceFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,11 +16,14 @@ public class Board {
     private HashMap<Coordinates, Piece> pieces = new HashMap<>();
 
     public List<Move> moves = new ArrayList<>();
+    private Move lastMove = null; // Поле для хранения последнего хода
 
     private PieceFactory pieceFactory = new PieceFactory(); // Объект для создания фигур
 
     public Board(String startingFen) {
         this.startingFen = startingFen;
+        // Инициализация доски из FEN (необходимо реализовать)
+        // fromFEN(startingFen);
     }
 
     public void setPiece(Coordinates coordinates, Piece piece) {
@@ -32,10 +35,12 @@ public class Board {
         pieces.remove(coordinates);
     }
 
-    // Обновленный метод makeMove с обработкой рокировки и превращения пешки
+    // Обновлённый метод makeMove с обработкой рокировки и En Passant
     public void makeMove(Move move) {
         Piece piece = getPiece(move.from);
+        move.pieceMoved = piece; // Устанавливаем перемещённую фигуру
 
+        // Удаление фигуры с исходной позиции
         removePiece(move.from);
 
         // Проверка на превращение пешки
@@ -52,16 +57,19 @@ public class Board {
                 }
                 setPiece(move.to, promotedPiece);
             } else {
+                // Обычный ход пешки
                 setPiece(move.to, piece);
                 piece.coordinates = move.to;
             }
         } else {
+            // Обычный ход фигуры
             setPiece(move.to, piece);
             piece.coordinates = move.to;
         }
 
-        piece.hasMoved = true; // Обновление флага
+        piece.hasMoved = true; // Обновление флага hasMoved
 
+        // Обработка рокировки
         if (move.isCastlingMove) {
             // Перемещение ладьи при рокировке
             Piece rook = getPiece(move.rookFrom);
@@ -72,6 +80,17 @@ public class Board {
             rook.hasMoved = true;
         }
 
+        // Обработка взятия En Passant
+        if (move.isEnPassantMove && piece instanceof Pawn) {
+            int direction = piece.color == Color.WHITE ? -1 : 1;
+            Coordinates capturedPawnCoords = new Coordinates(move.to.file, move.to.rank + direction);
+            removePiece(capturedPawnCoords);
+        }
+
+        // Обновление последнего хода
+        lastMove = move;
+
+        // Добавление хода в список
         moves.add(move);
     }
 
@@ -111,5 +130,9 @@ public class Board {
         }
 
         return false;
+    }
+
+    public Move getLastMove() {
+        return lastMove;
     }
 }

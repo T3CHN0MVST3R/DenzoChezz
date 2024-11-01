@@ -1,11 +1,11 @@
 package com.denzo.piece;
 
 import com.denzo.board.Board;
+import com.denzo.board.Move;
 import com.denzo.Color;
 import com.denzo.Coordinates;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Pawn extends Piece {
@@ -63,9 +63,21 @@ public class Pawn extends Piece {
                 }
             }
         } else {
-            // Взятие фигуры
+            // Взятие фигуры или En Passant
             if (Math.abs(this.coordinates.file.ordinal() - target.file.ordinal()) == 1 && rankDifference == direction) {
-                return !board.isSquareEmpty(target) && board.getPiece(target).color != color;
+                // Взятие обычное
+                if (!board.isSquareEmpty(target) && board.getPiece(target).color != color) {
+                    return true;
+                }
+
+                // Взятие En Passant
+                Move lastMove = board.getLastMove();
+                if (lastMove != null && lastMove.pieceMoved instanceof Pawn
+                        && Math.abs(lastMove.from.rank - lastMove.to.rank) == 2
+                        && lastMove.to.rank == this.coordinates.rank
+                        && lastMove.to.file == target.file) {
+                    return true;
+                }
             }
         }
 

@@ -104,13 +104,12 @@ public class InputCoordinates {
             renderer.render(board, piece);
             Coordinates targetCoordinates = inputAvailableSquare(availableMoveSquares);
 
-            Move move;
+            Move move = new Move(sourceCoordinates, targetCoordinates);
 
             if (piece instanceof King) {
                 int fileShift = targetCoordinates.file.ordinal() - sourceCoordinates.file.ordinal();
                 if (Math.abs(fileShift) == 2) {
                     // Рокировка
-                    move = new Move(sourceCoordinates, targetCoordinates);
                     move.isCastlingMove = true;
                     if (fileShift == 2) {
                         // Короткая рокировка
@@ -121,19 +120,30 @@ public class InputCoordinates {
                         move.rookFrom = new Coordinates(File.A, sourceCoordinates.rank);
                         move.rookTo = new Coordinates(File.D, sourceCoordinates.rank);
                     }
-                } else {
-                    move = new Move(sourceCoordinates, targetCoordinates);
                 }
-            } else {
-                move = new Move(sourceCoordinates, targetCoordinates);
             }
 
-            // Добавляем обработку превращения пешки
+            // Обработка превращения пешки
             if (piece instanceof Pawn) {
                 int lastRank = color == Color.WHITE ? 8 : 1;
                 if (targetCoordinates.rank == lastRank) {
                     Class<? extends Piece> promotionPieceType = inputPromotionPieceType();
                     move.promotionPieceType = promotionPieceType;
+                }
+            }
+
+            // Обработка En Passant
+            if (piece instanceof Pawn) {
+                int direction = color == Color.WHITE ? 1 : -1;
+                int rankDifference = targetCoordinates.rank - sourceCoordinates.rank;
+                if (Math.abs(rankDifference) == 1 && (targetCoordinates.file != sourceCoordinates.file)) {
+                    Move lastMove = board.getLastMove();
+                    if (lastMove != null && lastMove.pieceMoved instanceof Pawn
+                            && Math.abs(lastMove.from.rank - lastMove.to.rank) == 2
+                            && lastMove.to.rank == sourceCoordinates.rank
+                            && lastMove.to.file == targetCoordinates.file) {
+                        move.isEnPassantMove = true;
+                    }
                 }
             }
 
