@@ -4,15 +4,23 @@ import com.denzo.board.Board;
 import com.denzo.board.BoardFactory;
 import com.denzo.board.Move;
 import com.denzo.piece.*;
-import com.denzo.BoardConsoleRenderer;
+import com.denzo.piece.PieceType;
 
 import java.util.Scanner;
 import java.util.Set;
 
+/**
+ * Класс для обработки ввода координат от пользователя.
+ */
 public class InputCoordinates {
 
     private static final Scanner scanner = new Scanner(System.in);
 
+    /**
+     * Получает координаты от пользователя.
+     *
+     * @return введённые координаты.
+     */
     public static Coordinates input() {
         while (true) {
             System.out.println("Please enter coordinates (ex. a1)");
@@ -53,6 +61,13 @@ public class InputCoordinates {
         }
     }
 
+    /**
+     * Получает координаты фигуры, принадлежащей указанному цвету.
+     *
+     * @param color цвет фигуры.
+     * @param board текущая доска.
+     * @return координаты выбранной фигуры.
+     */
     public static Coordinates inputPieceCoordinatesForColor(Color color, Board board) {
         while (true) {
             System.out.println("Enter coordinates for a piece to move");
@@ -79,6 +94,12 @@ public class InputCoordinates {
         }
     }
 
+    /**
+     * Получает доступную цель для выбранной фигуры.
+     *
+     * @param coordinates доступные координаты.
+     * @return выбранные пользователем координаты.
+     */
     public static Coordinates inputAvailableSquare(Set<Coordinates> coordinates) {
         while (true) {
             System.out.println("Enter your move for selected piece");
@@ -93,7 +114,14 @@ public class InputCoordinates {
         }
     }
 
-    // Обновленный метод inputMove
+    /**
+     * Получает ход от пользователя.
+     *
+     * @param board    текущая доска.
+     * @param color    цвет игрока, совершающего ход.
+     * @param renderer рендерер для отображения доски.
+     * @return совершённый ход.
+     */
     public static Move inputMove(Board board, Color color, BoardConsoleRenderer renderer) {
         while (true) {
             Coordinates sourceCoordinates = inputPieceCoordinatesForColor(color, board);
@@ -127,7 +155,7 @@ public class InputCoordinates {
             if (piece instanceof Pawn) {
                 int lastRank = color == Color.WHITE ? 8 : 1;
                 if (targetCoordinates.rank == lastRank) {
-                    Class<? extends Piece> promotionPieceType = inputPromotionPieceType();
+                    PieceType promotionPieceType = inputPromotionPieceType();
                     move.promotionPieceType = promotionPieceType;
                 }
             }
@@ -156,26 +184,39 @@ public class InputCoordinates {
         }
     }
 
-    private static Class<? extends Piece> inputPromotionPieceType() {
+    /**
+     * Получает тип фигуры для превращения пешки.
+     *
+     * @return выбранный тип фигуры.
+     */
+    private static PieceType inputPromotionPieceType() {
         while (true) {
             System.out.println("Выберите фигуру для превращения (Q - Ферзь, R - Ладья, B - Слон, N - Конь):");
             String input = scanner.nextLine().trim().toUpperCase();
 
             switch (input) {
                 case "Q":
-                    return Queen.class;
+                    return PieceType.QUEEN;
                 case "R":
-                    return Rook.class;
+                    return PieceType.ROOK;
                 case "B":
-                    return Bishop.class;
+                    return PieceType.BISHOP;
                 case "N":
-                    return Knight.class;
+                    return PieceType.KNIGHT;
                 default:
                     System.out.println("Неверный выбор. Пожалуйста, выберите снова.");
             }
         }
     }
 
+    /**
+     * Проверяет, находится ли король под шахом после совершения хода.
+     *
+     * @param board текущая доска.
+     * @param color цвет игрока, чей король проверяется.
+     * @param move  совершённый ход.
+     * @return true, если король под шахом, иначе false.
+     */
     private static boolean validateIfKingInCheckAfterMove(Board board, Color color, Move move) {
         Board copy = new BoardFactory().copy(board);
         copy.makeMove(move);

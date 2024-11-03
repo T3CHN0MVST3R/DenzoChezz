@@ -6,7 +6,24 @@ import com.denzo.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Класс для работы с координатами на шахматной доске.
+ * Предоставляет методы для получения списка координат между двумя точками
+ * по диагонали, вертикали и горизонтали.
+ */
 public class BoardUtils {
+
+    /**
+     * Возвращает список координат между двумя точками по диагонали.
+     *
+     * <p>
+     * Допущение: клетки лежат на одной диагонали.
+     * </p>
+     *
+     * @param source исходные координаты.
+     * @param target целевые координаты.
+     * @return список координат между {@code source} и {@code target}.
+     */
     public static List<Coordinates> getDiagonalCoordinatesBetween(Coordinates source, Coordinates target) {
         // допущение - клетки лежат на одной диагонали
 
@@ -29,6 +46,17 @@ public class BoardUtils {
         return result;
     }
 
+    /**
+     * Возвращает список координат между двумя точками по вертикали.
+     *
+     * <p>
+     * Допущение: клетки лежат на одной вертикали.
+     * </p>
+     *
+     * @param source исходные координаты.
+     * @param target целевые координаты.
+     * @return список координат между {@code source} и {@code target}.
+     */
     public static List<Coordinates> getVerticalCoordinatesBetween(Coordinates source, Coordinates target) {
         // допущение - клетки лежат на одной вертикали
 
@@ -43,6 +71,17 @@ public class BoardUtils {
         return result;
     }
 
+    /**
+     * Возвращает список координат между двумя точками по горизонтали.
+     *
+     * <p>
+     * Допущение: клетки лежат на одной горизонтали.
+     * </p>
+     *
+     * @param source исходные координаты.
+     * @param target целевые координаты.
+     * @return список координат между {@code source} и {@code target}.
+     */
     public static List<Coordinates> getHorizontalCoordinatesBetween(Coordinates source, Coordinates target) {
         // допущение - клетки лежат на одной горизонтали
 
@@ -60,7 +99,13 @@ public class BoardUtils {
         return result;
     }
 
+    /**
+     * Основной метод для тестирования утилитных методов.
+     *
+     * @param args аргументы командной строки.
+     */
     public static void main(String[] args) {
+        // Пример использования метода getHorizontalCoordinatesBetween
         List<Coordinates> list = getHorizontalCoordinatesBetween(new Coordinates(File.D, 4), new Coordinates(File.H, 4));
         System.out.println("list = " + list);
     }

@@ -1,5 +1,8 @@
 package com.denzo;
 
+/** Перечисление состояний игры
+ *
+ */
 public enum GameState {
     ONGOING,
     STALEMATE,

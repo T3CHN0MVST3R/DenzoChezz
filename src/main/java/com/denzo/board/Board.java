@@ -2,40 +2,62 @@ package com.denzo.board;
 
 import com.denzo.Color;
 import com.denzo.Coordinates;
-import com.denzo.File;
 import com.denzo.piece.*;
-import com.denzo.PieceFactory;
+import com.denzo.piece.PieceFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+/**
+ * Класс, представляющий шахматную доску.
+ */
 public class Board {
-    public final String startingFen;
-    private HashMap<Coordinates, Piece> pieces = new HashMap<>();
-
-    public List<Move> moves = new ArrayList<>();
+    private final String startingFen;
+    private final HashMap<Coordinates, Piece> pieces = new HashMap<>();
+    private final List<Move> moves = new ArrayList<>();
     private Move lastMove = null; // Поле для хранения последнего хода
+    private final PieceFactory pieceFactory = new PieceFactory(); // Объект для создания фигур
 
-    private PieceFactory pieceFactory = new PieceFactory(); // Объект для создания фигур
-
+    /**
+     * Конструктор доски.
+     *
+     * @param startingFen строка FEN, представляющая начальное состояние доски.
+     */
     public Board(String startingFen) {
         this.startingFen = startingFen;
         // Инициализация доски из FEN (необходимо реализовать)
         // fromFEN(startingFen);
     }
 
+    /**
+     * Устанавливает фигуру на указанные координаты.
+     *
+     * @param coordinates координаты на доске.
+     * @param piece       фигура, которую нужно установить.
+     */
     public void setPiece(Coordinates coordinates, Piece piece) {
         piece.coordinates = coordinates;
         pieces.put(coordinates, piece);
     }
 
+    /**
+     * Удаляет фигуру с указанных координат.
+     *
+     * @param coordinates координаты на доске.
+     */
     public void removePiece(Coordinates coordinates) {
         pieces.remove(coordinates);
     }
 
-    // Обновлённый метод makeMove с обработкой рокировки и En Passant
+    /**
+     * Выполняет ход на доске с обработкой рокировки и взятия En Passant.
+     *
+     * @param move объект, представляющий ход.
+     */
     public void makeMove(Move move) {
         Piece piece = getPiece(move.from);
         move.pieceMoved = piece; // Устанавливаем перемещённую фигуру
@@ -94,18 +116,42 @@ public class Board {
         moves.add(move);
     }
 
+    /**
+     * Проверяет, пуста ли указанная клетка.
+     *
+     * @param coordinates координаты на доске.
+     * @return true, если клетка пуста, иначе false.
+     */
     public boolean isSquareEmpty(Coordinates coordinates) {
         return !pieces.containsKey(coordinates);
     }
 
+    /**
+     * Возвращает фигуру, находящуюся на указанных координатах.
+     *
+     * @param coordinates координаты на доске.
+     * @return фигура или null, если клетка пуста.
+     */
     public Piece getPiece(Coordinates coordinates) {
         return pieces.get(coordinates);
     }
 
+    /**
+     * Проверяет, является ли клетка темной.
+     *
+     * @param coordinates координаты на доске.
+     * @return true, если клетка темная, иначе false.
+     */
     public static boolean isSquareDark(Coordinates coordinates) {
         return (((coordinates.file.ordinal() + 1) + coordinates.rank) % 2) == 0;
     }
 
+    /**
+     * Возвращает список фигур указанного цвета.
+     *
+     * @param color цвет фигур.
+     * @return список фигур.
+     */
     public List<Piece> getPiecesByColor(Color color) {
         List<Piece> result = new ArrayList<>();
 
@@ -118,6 +164,13 @@ public class Board {
         return result;
     }
 
+    /**
+     * Проверяет, атакована ли указанная клетка фигурами заданного цвета.
+     *
+     * @param coordinates координаты на доске.
+     * @param color       цвет атакующих фигур.
+     * @return true, если клетка атакована, иначе false.
+     */
     public boolean isSquareAttackedByColor(Coordinates coordinates, Color color) {
         List<Piece> pieces = getPiecesByColor(color);
 
@@ -132,7 +185,39 @@ public class Board {
         return false;
     }
 
+    /**
+     * Возвращает последний выполненный ход.
+     *
+     * @return последний ход или null, если ходов не было.
+     */
     public Move getLastMove() {
         return lastMove;
+    }
+
+    /**
+     * Возвращает начальную строку FEN.
+     *
+     * @return строка FEN.
+     */
+    public String getStartingFen() {
+        return startingFen;
+    }
+
+    /**
+     * Возвращает неизменяемую карту фигур на доске.
+     *
+     * @return карта фигур.
+     */
+    public Map<Coordinates, Piece> getPieces() {
+        return Collections.unmodifiableMap(pieces);
+    }
+
+    /**
+     * Возвращает список всех выполненных ходов.
+     *
+     * @return список ходов.
+     */
+    public List<Move> getMoves() {
+        return Collections.unmodifiableList(moves);
     }
 }
